@@ -1,4 +1,4 @@
-from Utils.utils import WaitFindInputAndSendKeys, WaitFindAndReturn, WaitFindAndClick
+from Utils.utils import WaitFindInputAndSendKeys, WaitFindAndReturn, WaitFindAndClick, clearChat
 from selenium.webdriver.common.by import By
 import time
 
@@ -7,16 +7,14 @@ def Binguj(driver, commandText):
     WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Binguje obraz {commandText} <faja>") # send message that image is being generated
 
     # clear command from the chat, so it's not used again
-    toolbar = WaitFindAndReturn(driver, 1, By.CLASS_NAME, "toolbar-right") # find chat toolbar
-    WaitFindAndClick(toolbar, 1, By.CLASS_NAME, "settings-btn") # click on settings button
-    WaitFindAndClick(driver, 1, By.CLASS_NAME, "clear-all") # click on clear all messages
+    clearChat(driver)
 
     # switch to bing tab
     driver.switch_to.window(driver.window_handles[1]) 
 
     # wait until bing ai searchbox has loaded and look for it to send a prompt
     WaitFindInputAndSendKeys(driver, 1, By.CLASS_NAME, "b_searchbox", commandText)     
-    WaitFindAndClick(driver, 240, By.CLASS_NAME, "imgri-container") # click on generated image to open Iframe
+    WaitFindAndClick(driver, 10, By.CLASS_NAME, "imgri-container") # click on generated image to open Iframe
     print("Image generated")
 
     # switch to iframe with generated image
@@ -24,6 +22,7 @@ def Binguj(driver, commandText):
     driver.switch_to.frame(iframe)
 
     # find element with generted image
+    
     generatedImage = (
         f"//*[(@role='button') and (@aria-label='{commandText}')]" # look for button with aria label equal to prompt
     )
