@@ -23,12 +23,12 @@ def InitBot(driver):
     chatKomfa = 'Komfa'
     chatIng = 'Ing' # test chat
 
-    WaitFindAndClick(driver, 1, By.XPATH, f"//*[text()='{chatKomfa}']") # click on profile and start chat, avoid stale element exception
+    WaitFindAndClick(driver, 1, By.XPATH, f"//*[text()='{chatIng}']") # click on profile and start chat, avoid stale element exception
     WaitFindAndClick(driver, 1, By.CLASS_NAME, "talk-button")  # click on talk button to start chat
 
     driver.execute_script("window.open('https://www.bing.com/images/create');") # open bing ai on new tab and return to chat tab
-    # driver.execute_script("window.open('https://chatgpt.com/');") # open chatgpt on new tab and return to chat tab
+    driver.execute_script("window.open('https://chatgpt.com/');") # open chatgpt on new tab and return to chat tab
 
-    driver.switch_to.window(driver.window_handles[0]) # switch to chat tab (0)
+    driver.switch_to.window(driver.window_handles[0]) # switch to chat tab and wait for commands
 
     WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", "Jestem gotowy! <bije>") # send message that bot is ready

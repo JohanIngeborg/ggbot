@@ -3,10 +3,11 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
-from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException, TimeoutException, WebDriverException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from Utils.utils import WaitFindInputAndSendKeys, WaitFindAndReturn, WaitFindAndClick, clearChat
 from binguj import Binguj
 from innitBot import InitBot
+from bingusGpt import BingusGpt
 
 # setup chrome profile, so it doesn't ask for logins
 chrome_options = Options()
@@ -30,56 +31,71 @@ while(True):
     # WaitFindInputAndSendKeys(driver, 5, By.ID, "chat-text", "/binguj gf fdfd")
     # time.sleep(1) # wait for the command to be sent
     
-    # find command in the chat
-    bingujCommand = ( #image generation command
+    # bing command
+    bingujXpath = ( #image generation command
         "//*[@class='ml__item-part-content' " #check if command is in the active chat
         "and starts-with(normalize-space(text()), '/binguj ') " #check if command starts with '/binguj '
         "and string-length(normalize-space(text())) > string-length('/binguj ')]" #check if command is not empty after '/binguj '
     )
 
-    # bingusCommand = ( # chatgpt command
-    #     "//*[@class='ml__item-part-content' " #check if command is in the active chat
-    #     "and starts-with(normalize-space(text()), 'Bingus') " #check if command starts with '/binguj '
-    #     "and string-length(normalize-space(text())) > string-length('Bingus ')]" #check if command is not empty after '/binguj '
-    # )
-    restartXPATH = (
+    # restart command
+    restartXpath = (
         "//*[@class='ml__item-part-content' "
         "and normalize-space(text())='/restart']"
     )
+
+    # chatgpt command
+    gptXpath = ( # chatgpt command
+        "//*[@class='ml__item-part-content' " #check if command is in the active chat
+        "and starts-with(normalize-space(text()), '/bingus ')" #check if command starts with '/bingus '
+        "and string-length(normalize-space(text())) > string-length('/bingus ')]"
+    )
     
-    commands = driver.find_elements(By.XPATH, bingujCommand) # wait until command is found and make list of them
-    commandTextList = [command.text.replace("/binguj ", "") for command in commands] if commands else [] # process commands from the list into a list of strings, which can be used as prompts
-    restartCommand = driver.find_elements(By.XPATH, restartXPATH) # check if restart command is in the chat
+    bingujCommands = driver.find_elements(By.XPATH, bingujXpath) # wait until command is found and make list of them
+    bingPrompts = [command.text.replace("/binguj ", "") for command in bingujCommands] if bingujCommands else [] # process commands from the list into a list of strings, which can be used as prompts
+        
+    gptCommand = driver.find_elements(By.XPATH, gptXpath) # check if chatgpt command is in the chat
+    gptPrompts = [command.text.replace("/bingus ", "") for command in gptCommand] if gptCommand else [] # process chatgpt command into a list of strings
     
-    # if command is found
-    if commands:
-        for commandText in commandTextList:
-            try:
-                Binguj(driver, commandText)  # Call Binguj function with the command as an argument
-            except TimeoutException:
-                print("Timeout occurred while executing Binguj function")
-                driver.switch_to.window(driver.window_handles[0])
-                safe_text = commandText if isinstance(commandText, str) else str(commandText)
-                WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Nie udało się wybingować {safe_text} ;(")
-                continue
-            except WebDriverException as e:
-                if "ChromeDriver only supports characters in the BMP" in str(e):
-                    print(f"Unsupported characters detected in: {commandText}")
-                    WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Niedozwolone znaki <zniesmaczony>")
-                    clearChat(driver)
-                else:
-                    print(f"WebDriverException: {e}")
-                driver.switch_to.window(driver.window_handles[0])
-                continue
-            except Exception as e:
-                print(f"Unexpected error: {type(e).__name__}, {e}")
-                driver.switch_to.window(driver.window_handles[0])
-                continue
+    restartCommands = driver.find_elements(By.XPATH, restartXpath) # check if restart command is in the chat
+
+    # try to catch exceptions if command is found
+    # try:
+        # check if binguj command is found and execute it
+    if bingujCommands:
+        for prompt in bingPrompts:                
+            Binguj(driver, prompt)  # Call Binguj function with the command as an argument
+    
+    # check if chatgpt command is found and execute it
+    elif gptCommand:
+        for prompt in gptPrompts:
+            BingusGpt(driver, prompt)
+
     #restart a bot
-    elif restartCommand:
+    elif restartCommands:
         WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", "Restartuje się <palacz>")
         clearChat(driver)
         InitBot(driver)
+
+    # except TimeoutException:
+    #     print("Timeout occurred while executing function")
+    #     driver.switch_to.window(driver.window_handles[0])
+    #     safe_text = prompt if isinstance(prompt, str) else str(bingPrompts)
+    #     WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Nie udało się wybingować {safe_text} ;(")
+    #     continue
+    # except WebDriverException as e:
+    #     if "ChromeDriver only supports characters in the BMP" in str(e):
+    #         print(f"Unsupported characters detected in: {prompt}")
+    #         WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Niedozwolone znaki <zniesmaczony>")
+    #         clearChat(driver)
+    #     else:
+    #         print(f"WebDriverException: {e}")
+    #     driver.switch_to.window(driver.window_handles[0])
+    #     continue
+    # except Exception as e:
+    #     print(f"Unexpected error: {type(e).__name__}, {e}")
+    #     driver.switch_to.window(driver.window_handles[0])
+    #     continue
 
 
 driver.quit()

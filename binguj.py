@@ -10,7 +10,7 @@ def Binguj(driver, commandText):
     clearChat(driver)
 
     # switch to bing tab
-    driver.switch_to.window(driver.window_handles[1]) 
+    driver.switch_to.window(driver.window_handles[2])
 
     # wait until bing ai searchbox has loaded and look for it to send a prompt
     WaitFindInputAndSendKeys(driver, 1, By.CLASS_NAME, "b_searchbox", commandText)     
@@ -21,14 +21,15 @@ def Binguj(driver, commandText):
     iframe = WaitFindAndReturn(driver, 1, By.XPATH, "//iframe[@id='OverlayIFrame']")
     driver.switch_to.frame(iframe)
 
-    # find element with generted image
-    
-    generatedImage = (
-        f"//*[(@role='button') and (@aria-label='{commandText}')]" # look for button with aria label equal to prompt
-    )
-    imgElement = WaitFindAndReturn(driver, 1, By.XPATH, generatedImage)
+    # find element with generted image 
+    imgContainer = WaitFindAndReturn(driver, 1, By.CLASS_NAME, "imgContainer") # check if image container is present
+    imgElement = WaitFindAndReturn(imgContainer, 1, By.TAG_NAME, "img") # check if image is present
+    # generatedImage = (
+    #     f"//*[(@role='button') and (@aria-label='{commandText}')]" # look for button with aria label equal to prompt
+    # )
+    # imgElement = WaitFindAndReturn(driver, 1, By.XPATH, generatedImage)
     imageSrc = imgElement.get_attribute("src")
-    # print(f"Element found: {imgElement[0].get_attribute("outerHTML")}")
+    print(f"Element found: {imgElement.get_attribute("outerHTML")}")
     if imageSrc:
         print("Image found: " + imageSrc)
     else:
