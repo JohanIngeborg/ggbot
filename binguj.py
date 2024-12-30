@@ -29,7 +29,7 @@ def Binguj(driver, commandText):
     # )
     # imgElement = WaitFindAndReturn(driver, 1, By.XPATH, generatedImage)
     imageSrc = imgElement.get_attribute("src")
-    print(f"Element found: {imgElement.get_attribute("outerHTML")}")
+    print(f"Element found: {imgElement.get_attribute('outerHTML')}")
     if imageSrc:
         print("Image found: " + imageSrc)
     else:

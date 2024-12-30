@@ -16,10 +16,10 @@ chrome_options.add_argument("--profile-directory=Default")  # Default profile di
 
 # setup chrome driver
 try:
-    service = Service(executable_path='chromedriver.exe', service_args=["--verbose", "--log-path=chromedriver.log"])
+    service = Service(executable_path='chromedriver.exe')
     driver = webdriver.Chrome(service=service, options=chrome_options)
 except Exception as e:
-    print(f"Error initializing the Chrome driver: {e}")    
+    print(f"Error initializing the Chrome driver: {e}")
     exit(1)
 
 # initialize bot
@@ -54,48 +54,49 @@ while(True):
     bingujCommands = driver.find_elements(By.XPATH, bingujXpath) # wait until command is found and make list of them
     bingPrompts = [command.text.replace("/binguj ", "") for command in bingujCommands] if bingujCommands else [] # process commands from the list into a list of strings, which can be used as prompts
         
+
     gptCommand = driver.find_elements(By.XPATH, gptXpath) # check if chatgpt command is in the chat
     gptPrompts = [command.text.replace("/bingus ", "") for command in gptCommand] if gptCommand else [] # process chatgpt command into a list of strings
     
     restartCommands = driver.find_elements(By.XPATH, restartXpath) # check if restart command is in the chat
 
     # try to catch exceptions if command is found
-    # try:
+    try:
         # check if binguj command is found and execute it
-    if bingujCommands:
-        for prompt in bingPrompts:                
-            Binguj(driver, prompt)  # Call Binguj function with the command as an argument
-    
-    # check if chatgpt command is found and execute it
-    elif gptCommand:
-        for prompt in gptPrompts:
-            BingusGpt(driver, prompt)
+        if bingujCommands:
+            for prompt in bingPrompts:                
+                Binguj(driver, prompt)  # Call Binguj function with the command as an argument
+        
+        # check if chatgpt command is found and execute it
+        elif gptCommand:
+            for prompt in gptPrompts:
+                BingusGpt(driver, prompt)
 
     #restart a bot
-    elif restartCommands:
-        WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", "Restartuje się <palacz>")
-        clearChat(driver)
-        InitBot(driver)
+        elif restartCommands:
+            WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", "Restartuje się <palacz>")
+            clearChat(driver)
+            InitBot(driver)
 
-    # except TimeoutException:
-    #     print("Timeout occurred while executing function")
-    #     driver.switch_to.window(driver.window_handles[0])
-    #     safe_text = prompt if isinstance(prompt, str) else str(bingPrompts)
-    #     WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Nie udało się wybingować {safe_text} ;(")
-    #     continue
-    # except WebDriverException as e:
-    #     if "ChromeDriver only supports characters in the BMP" in str(e):
-    #         print(f"Unsupported characters detected in: {prompt}")
-    #         WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Niedozwolone znaki <zniesmaczony>")
-    #         clearChat(driver)
-    #     else:
-    #         print(f"WebDriverException: {e}")
-    #     driver.switch_to.window(driver.window_handles[0])
-    #     continue
-    # except Exception as e:
-    #     print(f"Unexpected error: {type(e).__name__}, {e}")
-    #     driver.switch_to.window(driver.window_handles[0])
-    #     continue
+    except TimeoutException:
+        print("Timeout occurred while executing function")
+        driver.switch_to.window(driver.window_handles[0])
+        safe_text = prompt if isinstance(prompt, str) else str(bingPrompts)
+        WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Nie udało się wybingować {safe_text} ;(")
+        continue
+    except WebDriverException as e:
+        if "ChromeDriver only supports characters in the BMP" in str(e):
+            print(f"Unsupported characters detected in: {prompt}")
+            WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Niedozwolone znaki <zniesmaczony>")
+            clearChat(driver)
+        else:
+            print(f"WebDriverException: {e}")
+        driver.switch_to.window(driver.window_handles[0])
+        continue
+    except Exception as e:
+        print(f"Unexpected error: {type(e).__name__}, {e}")
+        driver.switch_to.window(driver.window_handles[0])
+        continue
 
 
 driver.quit()

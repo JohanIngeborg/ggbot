@@ -1,4 +1,4 @@
-from Utils.utils import WaitFindInputAndSendKeys, WaitFindAndReturn, WaitFindAndClick, clearChat
+from Utils.utils import WaitFindInputAndSendKeys, WaitFindAndReturn, WaitFindAndClick, clearChat, filterBmp
 from selenium.webdriver.common.by import By
 import time
 
@@ -13,7 +13,7 @@ def BingusGpt(driver, prompt):
         driver.switch_to.window(driver.window_handles[1])
 
         xpath = '//*[@data-placeholder="Wyślij wiadomość do ChatGPT"]'
-        preMessage = "(Jesteś pomocnym botem który nazywa się Bingus, jesteś miły ale lubisz się droczyć. Używasz emotek takich jak - <faja>, <palacz>, :>, ;>, :)), <bije>, <myśli>, <hura>, <hejka>) "
+        preMessage = "(Jesteś pomocnym botem który nazywa się Bingus, jesteś miły ale lubisz się droczyć. Używasz emotek takich jak - <faja>, <palacz>, :>, ;>, :)), <bije>, <myśli>, <hura>, <hejka>, <zniesmaczony>, <wnerw>, <nerwus>, <zawstydzony>) "
         WaitFindInputAndSendKeys(driver, 1, By.XPATH, xpath, preMessage + prompt) # send prompt to chatgpt
 
         #wait for the response to be generated
@@ -35,6 +35,7 @@ def BingusGpt(driver, prompt):
 
         # switch back to chat tab and send the image
         driver.switch_to.window(driver.window_handles[0]) # switch back to chat tab
+        text = filterBmp(text)
         WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", text)
         
 
