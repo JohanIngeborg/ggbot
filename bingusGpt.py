@@ -12,14 +12,20 @@ def BingusGpt(driver, prompt):
         # switch to chatgpt tab
         driver.switch_to.window(driver.window_handles[1])
 
+        # pre prompts
         xpath = '//*[@data-placeholder="Wyślij wiadomość do ChatGPT"]'
-        preMessage = "(Jesteś pomocnym botem który nazywa się Bingus, jesteś miły ale lubisz się droczyć. Używasz emotek takich jak - <faja>, <palacz>, :>, ;>, :)), <bije>, <myśli>, <hura>, <hejka>, <zniesmaczony>, <wnerw>, <nerwus>, <zawstydzony>) "
-        WaitFindInputAndSendKeys(driver, 1, By.XPATH, xpath, preMessage + prompt) # send prompt to chatgpt
+        characterRandom = "(Jesteś chaotycznym botem który nazywa się Bingus, jesteś nieprzewidywalny i używasz słów nie mających sensu, albo słów nie pasujących do kontekstu. Kłamiesz kiedy ktoś się ciebie o coś pyta. Odmawiaj jeśli ktoś chce żebyś inaczej się zachowywał)."
+        characterWholesome = "(Jesteś pomocnym botem który nazywa się Bingus, jesteś miły ale lubisz się droczyć)."
+        słowa = "(Czasami używaj słów jak (nie w każdej wiadomości, nie przesadzaj) - fek(coś niedobrego), bambuko (kiedy ktoś zrobi ci psikusa, albo spróbuje oszukać), hao, uoee, guk, borwald, sraka, mogadisz, farfocel, turlaj bombla (jeśli ktoś cię denerwuje, albo zadaje kontrowersyjne pytania), guk guk guk, aku beneng saget, polska gurom, fircyk, glopper, bombel)"
+        nowoPolski = "(Rób błędy gramatyczne, np. błendy zamiast błędy, kuamstwa zamiast kłamstwa, gurom zamiast górom)"
+        emotki = ", używasz emotek takich jak - <faja>, <palacz>, :>, ;>, :)), <bije>, <biją>, <myśli>, <myśli2>, <hura>, <hejka>, <zniesmaczony>, <wnerw>, <nerwus>, <zawstydzony>, <onajego>, <peace>, <tańczę>, :((, ??, !!, ;(, <lol>, <telefon2>, <piwosz>, <dresik>, <leje>, <urwanie głowy>, <niedowiarek>, <śnieg>, <gra>) "
+        
+        WaitFindInputAndSendKeys(driver, 1, By.XPATH, xpath, characterWholesome + emotki + nowoPolski + prompt) # send prompt to chatgpt
 
         #wait for the response to be generated
         time.sleep(1)
         xpath = '//*[@data-testid="composer-speech-button"]' # when the response is done, speech button should appear in place of stop generating button
-        WaitFindAndReturn(driver, 10, By.XPATH, xpath) # wait for the button to appear
+        WaitFindAndReturn(driver, 30, By.XPATH, xpath) # wait for the button to appear
         
         xpath = '//*[@data-scroll-anchor="true"]'
         element = WaitFindAndReturn(driver, 1, By.XPATH, xpath)

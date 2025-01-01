@@ -45,18 +45,47 @@ while(True):
     )
 
     # chatgpt command
-    gptXpath = ( # chatgpt command
+    gptXpath = ( 
         "//*[@class='ml__item-part-content' " #check if command is in the active chat
         "and starts-with(normalize-space(text()), '/bingus ')" #check if command starts with '/bingus '
         "and string-length(normalize-space(text())) > string-length('/bingus ')]"
     )
-    
+
+    # find nick of the user who sent the command
+    def FindGptCommandsAndUserNick():
+        messages = driver.find_elements(By.CLASS_NAME, "ml__item--incoming")
+        commandFound = False
+        gptPrompts = []
+
+        if messages:
+            for message in reversed(messages):
+                gptCommand = message.find_elements(By.XPATH, f".{gptXpath}") # wait until command is found and make list of them
+                gptPromptText = ""
+
+                # check if user has sent a gpt command and turn on a switch, so we can look for a nick of the user
+                if gptCommand:
+                    print(f"Wiadomość: {gptCommand[0].text}")
+                    gptPromptText = gptCommand[0].text.replace("/bingus ", "") # remove /binguj from the command, so we can use it as a prompt
+                    commandFound = True
+
+                # look for nick only if user sent a command
+                if commandFound:
+                    nick = message.find_elements(By.CLASS_NAME, "ml__item-username")
+                    print(f"Nick found: {len(nick)}")
+
+                    if nick:
+                        print(f"Nick: {nick[0].text}")
+                        gptPromptText = f"(Nazywam się {nick[0].text})  {gptPromptText}" # add nick to the prompt, so bot knows who is asking
+                        print (f"Pełna wiadomość: {nick[0].text} napisał, {gptPromptText}")
+                        gptPrompts.append(gptPromptText) # add prompt to the list of prompts to
+                        commandFound = False # turn off the switch if nick is found, so we don't look it while waiting for another command
+        return gptPrompts
+
     bingujCommands = driver.find_elements(By.XPATH, bingujXpath) # wait until command is found and make list of them
     bingPrompts = [command.text.replace("/binguj ", "") for command in bingujCommands] if bingujCommands else [] # process commands from the list into a list of strings, which can be used as prompts
-        
 
-    gptCommand = driver.find_elements(By.XPATH, gptXpath) # check if chatgpt command is in the chat
-    gptPrompts = [command.text.replace("/bingus ", "") for command in gptCommand] if gptCommand else [] # process chatgpt command into a list of strings
+    # gptCommand = driver.find_elements(By.XPATH, gptXpath) # check if chatgpt command is in the chat
+    # gptPrompts = [command.text.replace("/bingus ", "") for command in gptCommand] if gptCommand else [] # process chatgpt command into a list of strings
     
     restartCommands = driver.find_elements(By.XPATH, restartXpath) # check if restart command is in the chat
 
@@ -68,8 +97,8 @@ while(True):
                 Binguj(driver, prompt)  # Call Binguj function with the command as an argument
         
         # check if chatgpt command is found and execute it
-        elif gptCommand:
-            for prompt in gptPrompts:
+        if FindGptCommandsAndUserNick():
+            for prompt in FindGptCommandsAndUserNick():
                 BingusGpt(driver, prompt)
 
     #restart a bot
@@ -98,5 +127,5 @@ while(True):
         driver.switch_to.window(driver.window_handles[0])
         continue
 
-
+    # input("Press Enter to exit...")
 driver.quit()
