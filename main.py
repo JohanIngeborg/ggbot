@@ -56,7 +56,7 @@ while(True):
         "and normalize-space(text())='/restart']"
     )
 
-    # find nick of the user who sent the command
+    # find nick of the user who sent the command, if someone wrote few messages in a row, you have to look for his first message to get the element with the nick
     def FindGptCommandsAndUserNick():
         messages = driver.find_elements(By.CLASS_NAME, "ml__item--incoming")
         commandFound = False
