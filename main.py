@@ -3,11 +3,16 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
+import sys
 from selenium.common.exceptions import TimeoutException, WebDriverException
-from Utils.utils import WaitFindInputAndSendKeys, WaitFindAndReturn, WaitFindAndClick, clearChat
+from Utils.utils import WaitFindInputAndSendKeys, WaitFindAndReturn, WaitFindAndClick, clearChat, filterBmp
 from binguj import Binguj
 from innitBot import InitBot
 from bingusGpt import BingusGpt
+from zrytek import Zrytek
+
+# Set default encoding to UTF-8, to avoid UnicodeEncodeError
+sys.stdout.reconfigure(encoding='utf-8')
 
 # setup chrome profile, so it doesn't ask for logins
 chrome_options = Options()
@@ -38,17 +43,17 @@ while(True):
         "and string-length(normalize-space(text())) > string-length('/binguj ')]" #check if command is not empty after '/binguj '
     )
 
-    # restart command
-    restartXpath = (
-        "//*[@class='ml__item-part-content' "
-        "and normalize-space(text())='/restart']"
-    )
-
     # chatgpt command
     gptXpath = ( 
         "//*[@class='ml__item-part-content' " #check if command is in the active chat
         "and starts-with(normalize-space(text()), '/bingus ')" #check if command starts with '/bingus '
         "and string-length(normalize-space(text())) > string-length('/bingus ')]"
+    )
+    
+    # restart command
+    restartXpath = (
+        "//*[@class='ml__item-part-content' "
+        "and normalize-space(text())='/restart']"
     )
 
     # find nick of the user who sent the command
@@ -58,9 +63,9 @@ while(True):
         gptPrompts = []
 
         if messages:
+            gptPromptText = ""
             for message in reversed(messages):
                 gptCommand = message.find_elements(By.XPATH, f".{gptXpath}") # wait until command is found and make list of them
-                gptPromptText = ""
 
                 # check if user has sent a gpt command and turn on a switch, so we can look for a nick of the user
                 if gptCommand:
@@ -79,13 +84,12 @@ while(True):
                         print (f"Pełna wiadomość: {nick[0].text} napisał, {gptPromptText}")
                         gptPrompts.append(gptPromptText) # add prompt to the list of prompts to
                         commandFound = False # turn off the switch if nick is found, so we don't look it while waiting for another command
-        return gptPrompts
+        
+        # we are filtering out unsupported characters from the prompt list, so there's no error while sending it with selenium
+        return [filterBmp(prompt) for prompt in gptPrompts]
 
     bingujCommands = driver.find_elements(By.XPATH, bingujXpath) # wait until command is found and make list of them
     bingPrompts = [command.text.replace("/binguj ", "") for command in bingujCommands] if bingujCommands else [] # process commands from the list into a list of strings, which can be used as prompts
-
-    # gptCommand = driver.find_elements(By.XPATH, gptXpath) # check if chatgpt command is in the chat
-    # gptPrompts = [command.text.replace("/bingus ", "") for command in gptCommand] if gptCommand else [] # process chatgpt command into a list of strings
     
     restartCommands = driver.find_elements(By.XPATH, restartXpath) # check if restart command is in the chat
 
@@ -113,15 +117,15 @@ while(True):
         safe_text = prompt if isinstance(prompt, str) else str(bingPrompts)
         WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Nie udało się wybingować {safe_text} ;(")
         continue
-    except WebDriverException as e:
-        if "ChromeDriver only supports characters in the BMP" in str(e):
-            print(f"Unsupported characters detected in: {prompt}")
-            WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Niedozwolone znaki <zniesmaczony>")
-            clearChat(driver)
-        else:
-            print(f"WebDriverException: {e}")
-        driver.switch_to.window(driver.window_handles[0])
-        continue
+    # except WebDriverException as e:
+    #     if "ChromeDriver only supports characters in the BMP" in str(e):
+    #         print(f"Unsupported characters detected in: {prompt}")
+    #         WaitFindInputAndSendKeys(driver, 1, By.ID, "chat-text", f"Niedozwolone znaki <zniesmaczony>")
+    #         clearChat(driver)
+    #     else:
+    #         print(f"WebDriverException: {e}")
+    #     driver.switch_to.window(driver.window_handles[0])
+    #     continue
     except Exception as e:
         print(f"Unexpected error: {type(e).__name__}, {e}")
         driver.switch_to.window(driver.window_handles[0])

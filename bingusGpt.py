@@ -9,7 +9,7 @@ def BingusGpt(driver, prompt):
         # clear command from the chat, so it's not used again
         clearChat(driver)
 
-        # switch to chatgpt tab
+        # switch to chatgpt tab, so we can send the prompt and generate the response
         driver.switch_to.window(driver.window_handles[1])
 
         # pre prompts
@@ -20,21 +20,22 @@ def BingusGpt(driver, prompt):
         nowoPolski = "(Rób błędy gramatyczne, np. błendy zamiast błędy, kuamstwa zamiast kłamstwa, gurom zamiast górom)"
         emotki = ", używasz emotek takich jak - <faja>, <palacz>, :>, ;>, :)), <bije>, <biją>, <myśli>, <myśli2>, <hura>, <hejka>, <zniesmaczony>, <wnerw>, <nerwus>, <zawstydzony>, <onajego>, <peace>, <tańczę>, :((, ??, !!, ;(, <lol>, <telefon2>, <piwosz>, <dresik>, <leje>, <urwanie głowy>, <niedowiarek>, <śnieg>, <gra>) "
         
-        WaitFindInputAndSendKeys(driver, 1, By.XPATH, xpath, characterWholesome + emotki + nowoPolski + prompt) # send prompt to chatgpt
+        WaitFindInputAndSendKeys(driver, 1, By.XPATH, xpath, emotki + prompt) # send prompt to chatgpt
 
         #wait for the response to be generated
         time.sleep(1)
-        xpath = '//*[@data-testid="composer-speech-button"]' # when the response is done, speech button should appear in place of stop generating button
+        xpath = '//*[@data-testid="composer-speech-button"]' # when the response is done, speech button should appear in place of 'stop generate' button
         WaitFindAndReturn(driver, 30, By.XPATH, xpath) # wait for the button to appear
-        
+        time.sleep(1) # sometimes this button shows up for a split second (or too soon) and then disappears, so we need to wait a little bit longer
+
         xpath = '//*[@data-scroll-anchor="true"]'
         element = WaitFindAndReturn(driver, 1, By.XPATH, xpath)
-        print(f"Element found: {element.get_attribute('outerHTML')}")
+        # print(f"Element found: {element.get_attribute('outerHTML')}")
 
         xpath2 = ".//div[contains(@class, 'markdown') and contains(@class, 'prose')]"
         # Use relative XPath starting from the parent element
         response = WaitFindAndReturn(element, 1, By.XPATH, xpath2)
-        print(f"Response found: {response.get_attribute('outerHTML')}")
+        # print(f"Response found: {response.get_attribute('outerHTML')}")
         print(f"Response found: {response.text}")
         
         text = response.text
