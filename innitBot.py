@@ -23,7 +23,7 @@ def InitBot(driver):
     chatKomfa = 'Komfa'
     chatIng = 'Ing' # test chat
 
-    WaitFindAndClick(driver, 1, By.XPATH, f"//*[text()='{chatIng}']") # click on profile and start chat, avoid stale element exception
+    WaitFindAndClick(driver, 1, By.XPATH, f"//*[text()='{chatKomfa}']") # click on profile and start chat, avoid stale element exception
     WaitFindAndClick(driver, 1, By.CLASS_NAME, "talk-button")  # click on talk button to start chat
 
     driver.execute_script("window.open('https://www.bing.com/images/create');") # open bing ai on new tab and return to chat tab
